@@ -35,7 +35,7 @@ public class TradeService {
      * - Retry (different payload): Throw ConflictException → 409 Conflict
      */
     @Transactional
-    public TradeResponse createTrade(CreateTradeRequest request) {
+    public TradeCreationResult createTrade(CreateTradeRequest request) {
         UUID tradeId = UUID.fromString(request.getTradeId());
         logger.debug("Processing trade creation request for tradeId: {}", tradeId);
 
@@ -48,7 +48,7 @@ public class TradeService {
             // Check if payload matches
             if (payloadMatches(existingTrade, request)) {
                 logger.info("Trade {} already exists with same payload, returning existing (idempotent)", tradeId);
-                return convertToResponse(existingTrade);
+                return new TradeCreationResult(convertToResponse(existingTrade), false);
             } else {
                 logger.warn("Trade {} already exists with different payload, rejecting", tradeId);
                 throw new ConflictException("Trade " + tradeId + " already exists with different payload");
@@ -72,7 +72,7 @@ public class TradeService {
 
         ledgerService.generateEntries(trade);
 
-        return convertToResponse(trade);
+        return new TradeCreationResult(convertToResponse(trade), true);
     }
 
     private boolean payloadMatches(Trade existing, CreateTradeRequest request) {

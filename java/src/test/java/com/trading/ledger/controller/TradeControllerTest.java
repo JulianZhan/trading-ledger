@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trading.ledger.dto.CreateTradeRequest;
 import com.trading.ledger.dto.TradeResponse;
 import com.trading.ledger.exception.ConflictException;
+import com.trading.ledger.service.TradeCreationResult;
 import com.trading.ledger.service.TradeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,8 @@ class TradeControllerTest {
                 Instant.now()
         );
 
-        when(tradeService.createTrade(any(CreateTradeRequest.class))).thenReturn(mockResponse);
+        when(tradeService.createTrade(any(CreateTradeRequest.class)))
+                .thenReturn(new TradeCreationResult(mockResponse, true));
 
         // When/Then
         mockMvc.perform(post("/api/v1/trades")
@@ -246,7 +248,8 @@ class TradeControllerTest {
                 Instant.now()
         );
 
-        when(tradeService.createTrade(any(CreateTradeRequest.class))).thenReturn(mockResponse);
+        when(tradeService.createTrade(any(CreateTradeRequest.class)))
+                .thenReturn(new TradeCreationResult(mockResponse, true));
 
         // When/Then
         mockMvc.perform(post("/api/v1/trades")
@@ -281,7 +284,8 @@ class TradeControllerTest {
                 Instant.now()
         );
 
-        when(tradeService.createTrade(any(CreateTradeRequest.class))).thenReturn(mockResponse);
+        when(tradeService.createTrade(any(CreateTradeRequest.class)))
+                .thenReturn(new TradeCreationResult(mockResponse, true));
 
         // When/Then
         mockMvc.perform(post("/api/v1/trades")

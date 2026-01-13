@@ -2,6 +2,7 @@ package com.trading.ledger.controller;
 
 import com.trading.ledger.dto.CreateTradeRequest;
 import com.trading.ledger.dto.TradeResponse;
+import com.trading.ledger.service.TradeCreationResult;
 import com.trading.ledger.service.TradeService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -34,10 +35,12 @@ public class TradeController {
     public ResponseEntity<TradeResponse> createTrade(@Valid @RequestBody CreateTradeRequest request) {
         logger.info("Received trade creation request: tradeId={}", request.getTradeId());
 
-        TradeResponse response = tradeService.createTrade(request);
+        TradeCreationResult result = tradeService.createTrade(request);
 
-        logger.info("Trade processed successfully: tradeId={}", response.getTradeId());
+        HttpStatus status = result.isNewlyCreated() ? HttpStatus.CREATED : HttpStatus.OK;
+        logger.info("Trade processed successfully: tradeId={}, status={}",
+                result.getTrade().getTradeId(), status);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(status).body(result.getTrade());
     }
 }
