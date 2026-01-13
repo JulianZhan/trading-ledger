@@ -25,3 +25,25 @@ target_link_libraries(integration_test
 )
 
 gtest_discover_tests(integration_test)
+
+# Ring buffer test (header-only, no library dependency needed)
+add_executable(ring_buffer_test
+    ring_buffer_test.cpp
+)
+
+target_include_directories(ring_buffer_test
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+)
+
+target_link_libraries(ring_buffer_test
+    PRIVATE
+        GTest::gtest
+        GTest::gtest_main
+)
+
+# Link threads library for multi-threaded tests
+find_package(Threads REQUIRED)
+target_link_libraries(ring_buffer_test PRIVATE Threads::Threads)
+
+gtest_discover_tests(ring_buffer_test)
