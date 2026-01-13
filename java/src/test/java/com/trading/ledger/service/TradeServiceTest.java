@@ -3,6 +3,7 @@ package com.trading.ledger.service;
 import com.trading.ledger.domain.Trade;
 import com.trading.ledger.dto.CreateTradeRequest;
 import com.trading.ledger.dto.TradeResponse;
+import com.trading.ledger.eventlog.FileEventLogWriter;
 import com.trading.ledger.exception.ConflictException;
 import com.trading.ledger.mapper.TradeMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,9 @@ class TradeServiceTest {
 
     @Mock
     private LedgerService ledgerService;
+
+    @Mock
+    private FileEventLogWriter eventLogWriter;
 
     @InjectMocks
     private TradeService tradeService;

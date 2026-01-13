@@ -3,6 +3,8 @@ package com.trading.ledger.service;
 import com.trading.ledger.domain.Trade;
 import com.trading.ledger.dto.CreateTradeRequest;
 import com.trading.ledger.dto.TradeResponse;
+import com.trading.ledger.eventlog.Event;
+import com.trading.ledger.eventlog.FileEventLogWriter;
 import com.trading.ledger.exception.ConflictException;
 import com.trading.ledger.mapper.TradeMapper;
 import org.slf4j.Logger;
@@ -10,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,10 +25,12 @@ public class TradeService {
 
     private final TradeMapper tradeMapper;
     private final LedgerService ledgerService;
+    private final FileEventLogWriter eventLogWriter;
 
-    public TradeService(TradeMapper tradeMapper, LedgerService ledgerService) {
+    public TradeService(TradeMapper tradeMapper, LedgerService ledgerService, FileEventLogWriter eventLogWriter) {
         this.tradeMapper = tradeMapper;
         this.ledgerService = ledgerService;
+        this.eventLogWriter = eventLogWriter;
     }
 
     /**
@@ -72,7 +79,29 @@ public class TradeService {
 
         ledgerService.generateEntries(trade);
 
+        // Write event to append-only log (after DB commit)
+        writeTradeCreatedEvent(trade);
+
         return new TradeCreationResult(convertToResponse(trade), true);
+    }
+
+    private void writeTradeCreatedEvent(Trade trade) {
+        try {
+            Map<String, Object> eventPayload = new HashMap<>();
+            eventPayload.put("trade_id", trade.getTradeId().toString());
+            eventPayload.put("account_id", trade.getAccountId());
+            eventPayload.put("symbol", trade.getSymbol());
+            eventPayload.put("quantity", trade.getQuantity());
+            eventPayload.put("price", trade.getPrice());
+            eventPayload.put("side", trade.getSide().name());
+            eventPayload.put("timestamp_ns", trade.getTimestampNs());
+
+            eventLogWriter.append(Event.EventType.TRADE_CREATED, eventPayload);
+            logger.debug("Wrote TRADE_CREATED event for trade {}", trade.getTradeId());
+        } catch (IOException e) {
+            logger.error("Failed to write event log for trade {}", trade.getTradeId(), e);
+            throw new RuntimeException("Failed to write event log", e);
+        }
     }
 
     private boolean payloadMatches(Trade existing, CreateTradeRequest request) {
