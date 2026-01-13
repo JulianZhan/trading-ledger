@@ -33,11 +33,11 @@ class LedgerServiceTest {
     private ArgumentCaptor<List<LedgerEntry>> entriesCaptor;
 
     private Trade sampleTrade;
-    private UUID tradeId;
+    private String tradeId;
 
     @BeforeEach
     void setUp() {
-        tradeId = UUID.randomUUID();
+        tradeId = UUID.randomUUID().toString();
         sampleTrade = new Trade(
                 tradeId,
                 "acc1",

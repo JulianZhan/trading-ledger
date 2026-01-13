@@ -4,13 +4,17 @@ import com.trading.ledger.domain.Trade;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Mapper
 public interface TradeMapper {
 
-    Optional<Trade> findByTradeId(@Param("tradeId") UUID tradeId);
+    Optional<Trade> findByTradeId(@Param("tradeId") String tradeId);
 
     void insert(Trade trade);
+
+    List<Trade> findByAccountId(@Param("accountId") String accountId,
+                                  @Param("limit") int limit,
+                                  @Param("offset") int offset);
 }

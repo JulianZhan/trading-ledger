@@ -1,5 +1,6 @@
 package com.trading.ledger.dto;
 
+import com.trading.ledger.domain.Trade;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,4 +21,17 @@ public class TradeResponse {
     private String side;
     private Long timestampNs;
     private Instant createdAt;
+
+    public static TradeResponse from(Trade trade) {
+        return new TradeResponse(
+                trade.getTradeId().toString(),
+                trade.getAccountId(),
+                trade.getSymbol(),
+                trade.getQuantity(),
+                trade.getPrice(),
+                trade.getSide().name(),
+                trade.getTimestampNs(),
+                trade.getCreatedAt()
+        );
+    }
 }

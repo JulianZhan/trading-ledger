@@ -4,7 +4,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,7 +13,7 @@ import java.util.UUID;
 public class LedgerEntry {
 
     private Long id;
-    private UUID tradeId;
+    private String tradeId;
     private String accountId;
     private EntryType entryType;
     private BigDecimal amount;
@@ -25,7 +24,7 @@ public class LedgerEntry {
         DEBIT, CREDIT
     }
 
-    public LedgerEntry(UUID tradeId, String accountId, EntryType entryType,
+    public LedgerEntry(String tradeId, String accountId, EntryType entryType,
                        BigDecimal amount, Long timestampNs) {
         this.tradeId = tradeId;
         this.accountId = accountId;

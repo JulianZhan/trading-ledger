@@ -4,7 +4,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,7 +13,7 @@ import java.util.UUID;
 public class Trade {
 
     private Long id;
-    private UUID tradeId;
+    private String tradeId;
     private String accountId;
     private String symbol;
     private BigDecimal quantity;
@@ -27,7 +26,7 @@ public class Trade {
         BUY, SELL
     }
 
-    public Trade(UUID tradeId, String accountId, String symbol, BigDecimal quantity,
+    public Trade(String tradeId, String accountId, String symbol, BigDecimal quantity,
                  BigDecimal price, Side side, Long timestampNs) {
         this.tradeId = tradeId;
         this.accountId = accountId;

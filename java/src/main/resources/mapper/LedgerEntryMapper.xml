@@ -28,4 +28,34 @@
         </foreach>
     </insert>
 
+    <select id="findByTradeId" resultMap="LedgerEntryResultMap">
+        SELECT * FROM ledger_entries
+        WHERE trade_id = #{tradeId}
+        ORDER BY id
+    </select>
+
+    <select id="findByAccountId" resultMap="LedgerEntryResultMap">
+        SELECT * FROM ledger_entries
+        WHERE account_id = #{accountId}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="calculatePositionsByAccountId" resultType="com.trading.ledger.dto.PositionResponse">
+        SELECT
+            t.account_id as accountId,
+            t.symbol,
+            SUM(CASE WHEN t.side = 'BUY' THEN t.quantity ELSE -t.quantity END) as quantity,
+            CASE
+                WHEN SUM(CASE WHEN t.side = 'BUY' THEN t.quantity ELSE -t.quantity END) != 0
+                THEN SUM(CASE WHEN t.side = 'BUY' THEN t.quantity * t.price ELSE -t.quantity * t.price END) /
+                     SUM(CASE WHEN t.side = 'BUY' THEN t.quantity ELSE -t.quantity END)
+                ELSE 0
+            END as averagePrice
+        FROM trades t
+        WHERE t.account_id = #{accountId}
+        GROUP BY t.account_id, t.symbol
+        HAVING SUM(CASE WHEN t.side = 'BUY' THEN t.quantity ELSE -t.quantity END) != 0
+    </select>
+
 </mapper>

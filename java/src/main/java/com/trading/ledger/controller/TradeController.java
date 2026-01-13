@@ -2,7 +2,6 @@ package com.trading.ledger.controller;
 
 import com.trading.ledger.dto.CreateTradeRequest;
 import com.trading.ledger.dto.TradeResponse;
-import com.trading.ledger.service.TradeCreationResult;
 import com.trading.ledger.service.TradeService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 public class TradeController {
 
     private static final Logger logger = LoggerFactory.getLogger(TradeController.class);
-
     private final TradeService tradeService;
 
     public TradeController(TradeService tradeService) {
@@ -34,13 +32,13 @@ public class TradeController {
     @PostMapping
     public ResponseEntity<TradeResponse> createTrade(@Valid @RequestBody CreateTradeRequest request) {
         logger.info("Received trade creation request: tradeId={}", request.getTradeId());
+        TradeResponse response = tradeService.createTrade(request);
+        logger.info("Trade processed successfully: tradeId={}", response.getTradeId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
-        TradeCreationResult result = tradeService.createTrade(request);
-
-        HttpStatus status = result.isNewlyCreated() ? HttpStatus.CREATED : HttpStatus.OK;
-        logger.info("Trade processed successfully: tradeId={}, status={}",
-                result.getTrade().getTradeId(), status);
-
-        return ResponseEntity.status(status).body(result.getTrade());
+    @ExceptionHandler(TradeService.IdempotentTradeException.class)
+    public ResponseEntity<TradeResponse> handleIdempotentTrade(TradeService.IdempotentTradeException ex) {
+        return ResponseEntity.ok(ex.getExistingTrade());
     }
 }

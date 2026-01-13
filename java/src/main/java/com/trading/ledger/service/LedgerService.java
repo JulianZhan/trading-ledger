@@ -54,19 +54,15 @@ public class LedgerService {
                 trade.getTimestampNs()
         );
 
-        // Save both entries atomically
         ledgerEntryMapper.insertAll(List.of(debitEntry, creditEntry));
 
-        // Validate double-entry invariant: SUM(DEBIT) + SUM(CREDIT) = 0
         BigDecimal sum = ledgerEntryMapper.sumEntriesByTradeId(trade.getTradeId());
         if (sum.compareTo(BigDecimal.ZERO) != 0) {
             logger.error("Double-entry invariant violated for trade {}: sum = {}", trade.getTradeId(), sum);
             throw new IllegalStateException("Double-entry accounting invariant violated: sum = " + sum);
         }
 
-        logger.info("Generated 2 ledger entries for trade {}, balance: {}",
-                trade.getTradeId(), sum);
-
+        logger.info("Generated 2 ledger entries for trade {}, balance: {}", trade.getTradeId(), sum);
         return List.of(debitEntry, creditEntry);
     }
 }

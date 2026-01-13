@@ -3,8 +3,6 @@ package com.trading.ledger.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trading.ledger.dto.CreateTradeRequest;
 import com.trading.ledger.dto.TradeResponse;
-import com.trading.ledger.exception.ConflictException;
-import com.trading.ledger.service.TradeCreationResult;
 import com.trading.ledger.service.TradeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +60,7 @@ class TradeControllerTest {
         );
 
         when(tradeService.createTrade(any(CreateTradeRequest.class)))
-                .thenReturn(new TradeCreationResult(mockResponse, true));
+                .thenReturn(mockResponse);
 
         // When/Then
         mockMvc.perform(post("/api/v1/trades")
@@ -249,7 +247,7 @@ class TradeControllerTest {
         );
 
         when(tradeService.createTrade(any(CreateTradeRequest.class)))
-                .thenReturn(new TradeCreationResult(mockResponse, true));
+                .thenReturn(mockResponse);
 
         // When/Then
         mockMvc.perform(post("/api/v1/trades")
@@ -285,7 +283,7 @@ class TradeControllerTest {
         );
 
         when(tradeService.createTrade(any(CreateTradeRequest.class)))
-                .thenReturn(new TradeCreationResult(mockResponse, true));
+                .thenReturn(mockResponse);
 
         // When/Then
         mockMvc.perform(post("/api/v1/trades")

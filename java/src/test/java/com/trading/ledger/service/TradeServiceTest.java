@@ -6,10 +6,11 @@ import com.trading.ledger.dto.TradeResponse;
 import com.trading.ledger.eventlog.FileEventLogWriter;
 import com.trading.ledger.exception.ConflictException;
 import com.trading.ledger.mapper.TradeMapper;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -33,15 +35,15 @@ class TradeServiceTest {
     @Mock
     private FileEventLogWriter eventLogWriter;
 
-    @InjectMocks
+    private MeterRegistry meterRegistry;
     private TradeService tradeService;
 
     private CreateTradeRequest validRequest;
-    private UUID tradeId;
+    private String tradeId;
 
     @BeforeEach
     void setUp() {
-        tradeId = UUID.randomUUID();
+        tradeId = UUID.randomUUID().toString();
         validRequest = new CreateTradeRequest(
                 tradeId.toString(),
                 "acc1",
@@ -50,6 +52,12 @@ class TradeServiceTest {
                 BigDecimal.valueOf(150.00),
                 "BUY"
         );
+
+        // Use SimpleMeterRegistry for testing (real implementation, not a mock)
+        meterRegistry = new SimpleMeterRegistry();
+
+        // Manually instantiate the service with mocks
+        tradeService = new TradeService(tradeMapper, ledgerService, eventLogWriter, meterRegistry);
     }
 
     @Test
@@ -60,13 +68,13 @@ class TradeServiceTest {
         doNothing().when(tradeMapper).insert(any(Trade.class));
 
         // When
-        TradeCreationResult result = tradeService.createTrade(validRequest);
+        TradeResponse result = tradeService.createTrade(validRequest);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.isNewlyCreated()).isTrue();
+        assertThat(result).isNotNull();
 
-        TradeResponse response = result.getTrade();
+        TradeResponse response = result;
         assertThat(response).isNotNull();
         assertThat(response.getTradeId()).isEqualTo(tradeId.toString());
         assertThat(response.getAccountId()).isEqualTo("acc1");
@@ -95,16 +103,15 @@ class TradeServiceTest {
         );
         when(tradeMapper.findByTradeId(tradeId)).thenReturn(Optional.of(existingTrade));
 
-        // When
-        TradeCreationResult result = tradeService.createTrade(validRequest);
+        // When/Then - should throw IdempotentTradeException with existing trade
+        TradeService.IdempotentTradeException exception = assertThrows(
+                TradeService.IdempotentTradeException.class,
+                () -> tradeService.createTrade(validRequest)
+        );
 
-        // Then - should return existing trade
-        assertThat(result).isNotNull();
-        assertThat(result.isNewlyCreated()).isFalse();
-
-        TradeResponse response = result.getTrade();
+        TradeResponse response = exception.getExistingTrade();
         assertThat(response).isNotNull();
-        assertThat(response.getTradeId()).isEqualTo(tradeId.toString());
+        assertThat(response.getTradeId()).isEqualTo(tradeId);
         assertThat(response.getAccountId()).isEqualTo("acc1");
 
         // Verify no new trade is created
@@ -234,12 +241,12 @@ class TradeServiceTest {
         doNothing().when(tradeMapper).insert(any(Trade.class));
 
         // When
-        TradeCreationResult result = tradeService.createTrade(sellRequest);
+        TradeResponse result = tradeService.createTrade(sellRequest);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.isNewlyCreated()).isTrue();
-        assertThat(result.getTrade().getSide()).isEqualTo("SELL");
+        assertThat(result).isNotNull();
+        assertThat(result.getSide()).isEqualTo("SELL");
         verify(tradeMapper, times(1)).insert(any(Trade.class));
         verify(ledgerService, times(1)).generateEntries(any(Trade.class));
     }
@@ -269,12 +276,12 @@ class TradeServiceTest {
         doNothing().when(tradeMapper).insert(any(Trade.class));
 
         // When
-        TradeCreationResult result = tradeService.createTrade(decimalRequest);
+        TradeResponse result = tradeService.createTrade(decimalRequest);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.isNewlyCreated()).isTrue();
-        assertThat(result.getTrade().getQuantity()).isEqualByComparingTo(new BigDecimal("0.12345678"));
-        assertThat(result.getTrade().getPrice()).isEqualByComparingTo(new BigDecimal("45000.12345678"));
+        assertThat(result).isNotNull();
+        assertThat(result.getQuantity()).isEqualByComparingTo(new BigDecimal("0.12345678"));
+        assertThat(result.getPrice()).isEqualByComparingTo(new BigDecimal("45000.12345678"));
     }
 }

@@ -27,4 +27,12 @@
         VALUES (#{tradeId}, #{accountId}, #{symbol}, #{quantity}, #{price}, #{side}, #{timestampNs}, CURRENT_TIMESTAMP)
     </insert>
 
+    <select id="findByAccountId" resultMap="TradeResultMap">
+        SELECT id, trade_id, account_id, symbol, quantity, price, side, timestamp_ns, created_at
+        FROM trades
+        WHERE account_id = #{accountId}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
 </mapper>
