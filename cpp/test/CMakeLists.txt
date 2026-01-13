@@ -47,3 +47,18 @@ find_package(Threads REQUIRED)
 target_link_libraries(ring_buffer_test PRIVATE Threads::Threads)
 
 gtest_discover_tests(ring_buffer_test)
+
+# Event log reader test
+add_executable(event_log_reader_test
+    event_log_reader_test.cpp
+)
+
+target_link_libraries(event_log_reader_test
+    PRIVATE
+        trading_ledger_lib
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+)
+
+gtest_discover_tests(event_log_reader_test)

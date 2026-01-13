@@ -37,6 +37,10 @@ include(GoogleTest)
 set(SOURCES
     src/EventParser.cpp
     src/FileReader.cpp
+    src/EventLogReader.cpp
+    src/EventLogTailer.cpp
+    src/DoubleEntryValidator.cpp
+    src/LatencyHistogram.cpp
 )
 
 # Create library
@@ -46,6 +50,14 @@ target_include_directories(trading_ledger_lib PUBLIC include)
 # Link with -lz for CRC32 (zlib)
 find_package(ZLIB REQUIRED)
 target_link_libraries(trading_ledger_lib PUBLIC ZLIB::ZLIB)
+
+# Event processor executable
+add_executable(event_processor src/event_processor_main.cpp)
+target_link_libraries(event_processor PRIVATE trading_ledger_lib)
+
+# Link threads library (for std::thread)
+find_package(Threads REQUIRED)
+target_link_libraries(event_processor PRIVATE Threads::Threads)
 
 # Tests
 add_subdirectory(test)
