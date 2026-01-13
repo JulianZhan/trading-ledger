@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: trading-ledger-postgres
+    environment:
+      POSTGRES_DB: trading_ledger
+      POSTGRES_USER: trader
+      POSTGRES_PASSWORD: trader123
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trader -d trading_ledger"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - trading-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  trading-network:
+    driver: bridge

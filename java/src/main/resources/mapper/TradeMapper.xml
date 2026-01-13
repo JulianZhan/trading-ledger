@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trading.ledger.mapper.TradeMapper">
+
+    <resultMap id="TradeResultMap" type="com.trading.ledger.domain.Trade">
+        <id property="id" column="id"/>
+        <result property="tradeId" column="trade_id"/>
+        <result property="accountId" column="account_id"/>
+        <result property="symbol" column="symbol"/>
+        <result property="quantity" column="quantity"/>
+        <result property="price" column="price"/>
+        <result property="side" column="side" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="timestampNs" column="timestamp_ns"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findByTradeId" resultMap="TradeResultMap">
+        SELECT id, trade_id, account_id, symbol, quantity, price, side, timestamp_ns, created_at
+        FROM trades
+        WHERE trade_id = #{tradeId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO trades (trade_id, account_id, symbol, quantity, price, side, timestamp_ns, created_at)
+        VALUES (#{tradeId}, #{accountId}, #{symbol}, #{quantity}, #{price}, #{side}, #{timestampNs}, CURRENT_TIMESTAMP)
+    </insert>
+
+</mapper>

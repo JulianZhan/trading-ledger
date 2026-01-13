@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trading.ledger.mapper.LedgerEntryMapper">
+
+    <resultMap id="LedgerEntryResultMap" type="com.trading.ledger.domain.LedgerEntry">
+        <id property="id" column="id"/>
+        <result property="tradeId" column="trade_id"/>
+        <result property="accountId" column="account_id"/>
+        <result property="entryType" column="entry_type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="amount" column="amount"/>
+        <result property="timestampNs" column="timestamp_ns"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="sumEntriesByTradeId" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(CASE WHEN entry_type = 'DEBIT' THEN amount ELSE -amount END), 0)
+        FROM ledger_entries
+        WHERE trade_id = #{tradeId}
+    </select>
+
+    <insert id="insertAll">
+        INSERT INTO ledger_entries (trade_id, account_id, entry_type, amount, timestamp_ns, created_at)
+        VALUES
+        <foreach collection="entries" item="entry" separator=",">
+            (#{entry.tradeId}, #{entry.accountId}, #{entry.entryType}, #{entry.amount}, #{entry.timestampNs}, CURRENT_TIMESTAMP)
+        </foreach>
+    </insert>
+
+</mapper>
